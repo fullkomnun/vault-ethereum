@@ -76,6 +76,11 @@ curl_command $(vault read -output-curl-string -field=address vault-ethereum/acco
 BOB_ADDRESS=$(vault read -field=address vault-ethereum/accounts/bob)
 logvalue $BOB_ADDRESS
 
+step "VERIFY BOB'S ADDRESS MAPPING"
+vault_command "vault read vault-ethereum/addresses/$BOB_ADDRESS"
+curl_command $(vault read -output-curl-string vault-ethereum/addresses/$BOB_ADDRESS)
+logvalue $(vault read vault-ethereum/addresses/$BOB_ADDRESS)
+
 header "HOW TO CREATE AN ACCOUNT NAMED ALICE WITH NO MNEMONIC"
 vault_command "vault write -f -format=json $PLUGIN/accounts/alice"
 curl_command $(vault write -f -output-curl-string $PLUGIN/accounts/alice)
