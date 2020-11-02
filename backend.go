@@ -62,11 +62,13 @@ func Backend(conf *logical.BackendConfig) (*PluginBackend, error) {
 		Paths: framework.PathAppend(
 			configPaths(&b),
 			accountPaths(&b),
+			addressesPaths(&b),
 			convertPaths(&b),
 			erc20Paths(&b),
 		),
 		PathsSpecial: &logical.Paths{
 			Unauthenticated: []string{
+				"addresses/*",
 				"convert",
 				"test",
 			},
@@ -100,4 +102,13 @@ func SealWrappedPaths(b *PluginBackend) []string {
 	return []string{
 		QualifiedPath("accounts/"),
 	}
+}
+
+func (b *PluginBackend) pathExistenceCheck(ctx context.Context, req *logical.Request, data *framework.FieldData) (bool, error) {
+	out, err := req.Storage.Get(ctx, req.Path)
+	if err != nil {
+		return false, fmt.Errorf("existence check failed: %v", err)
+	}
+
+	return out != nil, nil
 }

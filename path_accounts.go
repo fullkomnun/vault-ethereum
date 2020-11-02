@@ -325,13 +325,18 @@ func (b *PluginBackend) pathAccountsDelete(ctx context.Context, req *logical.Req
 		return nil, err
 	}
 	name := data.Get("name").(string)
-	_, err = readAccount(ctx, req, name)
+	accountJSON, err := readAccount(ctx, req, name)
+	if err != nil {
+		return nil, err
+	}
+	_, account, err := getWalletAndAccount(*accountJSON)
 	if err != nil {
 		return nil, err
 	}
 	if err := req.Storage.Delete(ctx, req.Path); err != nil {
 		return nil, err
 	}
+	b.removeCrossReference(ctx, req, name, account.Address.Hex())
 	return nil, nil
 }
 
@@ -394,6 +399,7 @@ func (b *PluginBackend) pathAccountsCreate(ctx context.Context, req *logical.Req
 		return nil, err
 	}
 
+	b.crossReference(ctx, req, name, account.Address.Hex())
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"address":    account.Address.Hex(),
